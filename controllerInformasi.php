@@ -1,6 +1,9 @@
 <?php
 include 'modelInformasi.php';
 include 'database.php';
+
+include 'firebase.php';
+include 'push.php';
 /**
  * create by zayed elfasa
  */
@@ -33,7 +36,7 @@ class controllerInformasi
   function setInformasi($judul, $isi, $jamPost) {
     try {
       $pdo = database::connect();
-      $sql = "INSERT INTO informasi (judul, isi, jampost) VALUES ('".$judul."', '".$isi."', '".$jamPost."')";
+      $sql = "insert into informasi (judul, isi, jampost) values ('".$judul."', '".$isi."', '".$jamPost."')";
       // use exec() because no results are returned
       $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $pdo->exec($sql);
@@ -44,6 +47,36 @@ class controllerInformasi
       // echo $sql . "<br>" . $e->getMessage();
       $returnArray = array("status" => "0", "message" => $e->getMessage());
       echo json_encode($returnArray, JSON_PRETTY_PRINT);
+    }
+  }
+
+  function setNotification($judul, $isi, $push_type) {
+    $firebase = new Firebase();
+    $push = new Push();
+    $push->setTitle($judul);
+    $push->setMessage($isi);
+    $push->setImage('');
+    $push->setIsBackground(FALSE);
+
+    $json = '';
+    $response = '';
+
+    if ($push_type == 'topic') {
+        $json = $push->getPush();
+        $response = $firebase->sendToTopic('global', $json);
+    } else if ($push_type == 'individual') {
+        $json = $push->getPush();
+
+        $pdo = database::connect();
+        $sql = "select id, fcmid from fcmregid";
+
+        foreach ($pdo->query($sql) as $row) {
+          $regId = $row['fcmid'];
+          $response = $firebase->send($regId, $json);
+
+          echo $response;
+        }
+        database::disconnect();
     }
   }
 }

@@ -19,7 +19,7 @@ class Push {
     private $is_background;
 
     function __construct() {
-        
+
     }
 
     public function setTitle($title) {
@@ -34,10 +34,6 @@ class Push {
         $this->image = $imageUrl;
     }
 
-    public function setPayload($data) {
-        $this->data = $data;
-    }
-
     public function setIsBackground($is_background) {
         $this->is_background = $is_background;
     }
@@ -48,7 +44,6 @@ class Push {
         $res['data']['is_background'] = $this->is_background;
         $res['data']['message'] = $this->message;
         $res['data']['image'] = $this->image;
-        $res['data']['payload'] = $this->data;
         $res['data']['timestamp'] = date('Y-m-d G:i:s');
         return $res;
     }
